@@ -44,7 +44,13 @@ byte voltage = 0;  // 0v=0 13v=255
 // since multiple tasks are running at once, we don't want two tasks to try and use one array at the same time.
 SemaphoreHandle_t mutexReceive;  // used to check whether receiving tasks can safely change shared variables
 
-byte controlMode = 0; // 0=disabled, 1=motors off, 2=segway driving, 3=self righting to segway, 4=outrigger driving, 5=maghead segway
+byte controlMode = 0;
+#define M_DISABLED 0
+#define M_PARK 1
+#define M_SEGWAY 2
+#define M_SELF_RIGHT_TO_SEGWAY 3
+#define M_OUTRIGGER 4
+#define M_MAGHEAD_SEGWAY 5
 byte lastControlMode = 0;  // to know if controlMode has changed
 boolean DSControlMode = false;  // what control mode does the driver want?
 boolean tipped = false;

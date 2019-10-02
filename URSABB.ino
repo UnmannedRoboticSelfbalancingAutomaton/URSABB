@@ -63,39 +63,42 @@ void loop() {  // on core 1. the balancing control loop will be here, with the g
   if (millis() - lastMessageTimeMillis > WiFiLossDisableIntervalMillis) {
     controlMode = 0;
   }
-  if (controlMode == 0) { // disabled
+  if (controlMode == M_DISABLED) { // disabled
     digitalWrite(LED_BUILTIN, HIGH);
-    PIDA.SetMode(MANUAL);
-    PIDS.SetMode(MANUAL);
-    timerAlarmWrite(leftStepTimer, 1e17, true);  // 1Mhz / # =  rate
-    timerAlarmWrite(rightStepTimer, 1e17, true);  // 1Mhz / # =  rate
-    timerAlarmEnable(leftStepTimer);
-    timerAlarmEnable(rightStepTimer);
-    leftMotorWriteSpeed = 0;
-    rightMotorWriteSpeed = 0;
-    targetPitch = 0;
-    motorAccel = 0;
-    motorSpeed = 0;
+    motorsStop();
     digitalWrite(ENS_PIN, HIGH);  // disables stepper motors
   } else {
     digitalWrite(LED_BUILTIN, (millis() % 500 < 250));
-    if (controlMode == 2) {
-      if (lastControlMode != 2) { // the robot wasn't enabled, but now it is, so this must be the first loop since it was enabled. re set up anything you might want to
-        digitalWrite(ENS_PIN, LOW);  // enables stepper motors
-        PIDA.SetMode(AUTOMATIC);  // turn on the PID
-        PIDS.SetMode(AUTOMATIC);  // turn on the PID
-      }
-      if (tipped) {
-        controlMode = 3;
-      }
-      PIDA.SetTunings(kP_angle, kI_angle, kD_angle);
-      PIDS.SetTunings(kP_speed, kI_speed, kD_speed);
-      PIDA.Compute();
-      if (PIDS.Compute()) {
-        motorSpeed += constrain(motorAccel, -MAX_ACCEL, MAX_ACCEL);
-        motorSpeed = constrain(motorSpeed, -MAX_SPEED, MAX_SPEED);
-        runMotors(motorSpeed + turnSpeedVal, motorSpeed - turnSpeedVal);
-      }
+    switch (controlMode) {
+      case M_SEGWAY:
+        if (lastControlMode != 2) { // the robot wasn't enabled, but now it is, so this must be the first loop since it was enabled. re set up anything you might want to
+          digitalWrite(ENS_PIN, LOW);  // enables stepper motors
+          PIDA.SetMode(AUTOMATIC);  // turn on the PID
+          PIDS.SetMode(AUTOMATIC);  // turn on the PID
+        }
+        if (tipped) {
+          controlMode = M_SELF_RIGHT_TO_SEGWAY;
+        }
+        PIDA.SetTunings(kP_angle, kI_angle, kD_angle);
+        PIDS.SetTunings(kP_speed, kI_speed, kD_speed);
+        PIDA.Compute();
+        if (PIDS.Compute()) {
+          motorSpeed += constrain(motorAccel, -MAX_ACCEL, MAX_ACCEL);
+          motorSpeed = constrain(motorSpeed, -MAX_SPEED, MAX_SPEED);
+          runMotors(motorSpeed + turnSpeedVal, motorSpeed - turnSpeedVal);
+        }
+        break;
+      case M_PARK:
+        motorsStop();
+        break;
+      case M_MAGHEAD_SEGWAY:
+        break;
+      case M_SELF_RIGHT_TO_SEGWAY:
+
+        break;
+      case M_OUTRIGGER:
+
+        break;
     }
   }
   lastControlMode = controlMode;
