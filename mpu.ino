@@ -1,3 +1,5 @@
+#include "ursabb.h"
+
 // start I2C communication and send commands to set up the MPU6050.
 // A command is set by starting a transmission, writing a byte (written here in hexadecimal) to signal what register should be changed,
 // and then sending a new register value
@@ -45,7 +47,7 @@ void readMPU6050() {
   pitch = COMPLEMENTARY_FILTER_CONSTANT * ((pitch) + rotationDPS_X * (micros() - lastCalcedMPU6050) / 1000000.000)  // add rotation rate as measured by the gyro to current pitch - valid in short term
           + (1 - COMPLEMENTARY_FILTER_CONSTANT) * (degrees(atan2(accelerationY, accelerationZ)) - pitchOffset);   // in the long term drift towards the angle of gravity measured by the accelerometer
 
-  if (robotEnabled) {  // only adjust pitchOffset when the robot is enabled
+  if (controlMode == 2) { // only adjust pitchOffset when the robot is enabled
     pitchOffset = (pitch + pitchOffset) * (1 - PITCH_OFFSET_CHANGE) + pitchOffset * (PITCH_OFFSET_CHANGE);  // slowly move pitchOffset towards the current pitch value, the overall average pitch value should be close to the balance point
   }
   lastCalcedMPU6050 = micros();  // record time of last calculation so we know next time how much time has passed (how much time to integrate rotation rate for)
