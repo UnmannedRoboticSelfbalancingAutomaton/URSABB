@@ -85,7 +85,7 @@ byte saverecallState = 0;  // 0=don't send don't save  1=send  2=save
 WiFiUDP Udp;
 
 PID PIDA(&pitch, &motorAccel, &targetPitch, kP_angle, kI_angle, kD_angle, DIRECT);  // setup the Angle PID loop  PID(&Input, &Output, &Setpoint, Kp, Ki, Kd, Direction)
-PID PIDS(&motorSpeed, &targetPitch, &speedVal, kP_speed, kI_angle, kD_angle, REVERSE);  // setup the Speed PID loop
+PID PIDS(&motorSpeed, &targetPitch, &speedVal, kP_speed, kI_angle, kD_angle, DIRECT);  // setup the Speed PID loop
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -254,7 +254,7 @@ byte createDataToSend() {
 void parseDataReceived() {  // put parse functions here
   byte counter = 0;
   enable = readBoolFromBuffer(counter);
-  speedVal = map(readByteFromBuffer(counter), 200, 0, -MAX_SPEED * DRIVE_SPEED_SCALER, MAX_SPEED * DRIVE_SPEED_SCALER);
+  speedVal = map(readByteFromBuffer(counter), 0, 200, -MAX_SPEED * DRIVE_SPEED_SCALER, MAX_SPEED * DRIVE_SPEED_SCALER);
   turnSpeedVal = map(readByteFromBuffer(counter), 0, 200, -MAX_SPEED * TURN_SPEED_SCALER, MAX_SPEED * TURN_SPEED_SCALER);
   numAuxRecv = readByteFromBuffer(counter);  // how many bytes of control data for extra things
 
