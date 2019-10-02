@@ -167,36 +167,36 @@ void loop() {  // on core 1. the balancing control loop will be here, with the g
     PIDA.SetTunings(kP_angle, kI_angle, kD_angle);
     PIDS.SetTunings(kP_speed, kI_speed, kD_speed);
     PIDA.Compute();
-    PIDS.Compute();  // compute the PID, it changes the variable (motorSpeedVal) you set it up with earlier.
+    if (PIDS.Compute()) {
+      motorSpeed += constrain(motorAccel, -MAX_ACCEL, MAX_ACCEL);
+      motorSpeed = constrain(motorSpeed, -MAX_SPEED, MAX_SPEED);
+      leftMotorWriteSpeed = constrain(motorSpeed + turnSpeedVal, -MAX_SPEED, MAX_SPEED); // combine turnSpeedVal and the motor speed required for forwards/backwards movement so the robot can move and turn
+      rightMotorWriteSpeed = constrain(motorSpeed - turnSpeedVal, -MAX_SPEED, MAX_SPEED); // positive turn=turn to the right -> right wheel needs to slow down -> subtract turnSpeedVal for right motor
 
-    motorSpeed += constrain(motorAccel, -MAX_ACCEL, MAX_ACCEL);
-    motorSpeed = constrain(motorSpeed, -MAX_SPEED, MAX_SPEED);
-    leftMotorWriteSpeed = constrain(motorSpeed + turnSpeedVal, -MAX_SPEED, MAX_SPEED); // combine turnSpeedVal and the motor speed required for forwards/backwards movement so the robot can move and turn
-    rightMotorWriteSpeed = constrain(motorSpeed - turnSpeedVal, -MAX_SPEED, MAX_SPEED); // positive turn=turn to the right -> right wheel needs to slow down -> subtract turnSpeedVal for right motor
+      if (leftMotorWriteSpeed >= 0) {
+        digitalWrite(LEFT_DIR_PIN, HIGH);
+      } else {
+        digitalWrite(LEFT_DIR_PIN, LOW);
+      }
+      if (rightMotorWriteSpeed >= 0) {
+        digitalWrite(RIGHT_DIR_PIN, HIGH);
+      } else {
+        digitalWrite(RIGHT_DIR_PIN, LOW);
+      }
 
-    if (leftMotorWriteSpeed >= 0) {
-      digitalWrite(LEFT_DIR_PIN, HIGH);
-    } else {
-      digitalWrite(LEFT_DIR_PIN, LOW);
+      if (abs(leftMotorWriteSpeed) >= 1) {
+        timerAlarmWrite(leftStepTimer, 1000000 / abs(leftMotorWriteSpeed), true);  // 1Mhz / # =  rate
+      } else {
+        timerAlarmWrite(leftStepTimer, 1e17, true);  // don't step
+      }
+      if (abs(rightMotorWriteSpeed) >= 1) {
+        timerAlarmWrite(rightStepTimer, 1000000 / abs(rightMotorWriteSpeed), true);  // 1Mhz / # =  rate
+      } else {
+        timerAlarmWrite(rightStepTimer, 1e17, true);  // don't step
+      }
+      timerAlarmEnable(leftStepTimer);
+      timerAlarmEnable(rightStepTimer);
     }
-    if (rightMotorWriteSpeed >= 0) {
-      digitalWrite(RIGHT_DIR_PIN, HIGH);
-    } else {
-      digitalWrite(RIGHT_DIR_PIN, LOW);
-    }
-
-    if (abs(leftMotorWriteSpeed) >= 1) {
-      timerAlarmWrite(leftStepTimer, 1000000 / abs(leftMotorWriteSpeed), true);  // 1Mhz / # =  rate
-    } else {
-      timerAlarmWrite(leftStepTimer, 1e17, true);  // don't step
-    }
-    if (abs(rightMotorWriteSpeed) >= 1) {
-      timerAlarmWrite(rightStepTimer, 1000000 / abs(rightMotorWriteSpeed), true);  // 1Mhz / # =  rate
-    } else {
-      timerAlarmWrite(rightStepTimer, 1e17, true);  // don't step
-    }
-    timerAlarmEnable(leftStepTimer);
-    timerAlarmEnable(rightStepTimer);
   } else {  // disable
     digitalWrite(LED_BUILTIN, HIGH);
     PIDA.SetMode(MANUAL);
