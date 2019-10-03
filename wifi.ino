@@ -4,7 +4,6 @@ void WiFiTaskFunction(void * pvParameters) {
   while (true) {  // infinite loop
     // wifi recieve code:
     int packetSize = Udp.parsePacket();
-
     if (packetSize) {
       if (xSemaphoreTake(mutexReceive, 1) == pdTRUE) {
         receivedNewData = true;
@@ -29,14 +28,14 @@ void WiFiTaskFunction(void * pvParameters) {
 }
 
 void setupWifi() {
-  WiFi.softAPConfig(IPAddress(10, 25, 21, 1), IPAddress(10, 25, 21, 1), IPAddress(255, 255, 255, 0));
+  WiFi.enableAP(true);
   WiFi.softAP(robotSSID, robotPass, 4, 0, 1);  // start wifi network, on channel 4, not hiding, and only allowing one client
-  Udp.begin(2521);  // port 2521 on 10.25.21.1
-
+  WiFi.softAPConfig(IPAddress(10, 25, 21, 255), IPAddress(10, 25, 21, 255), IPAddress(255, 255, 255, 0));
+  Udp.begin(2521);
   xTaskCreatePinnedToCore(  // create task to run WiFi recieving
     WiFiTaskFunction,   /* Function to implement the task */
     "WiFiTask",  /* Name of the task */
-    15000,       /* Stack size in words */
+    48000,       /* Stack size in words */
     NULL,        /* Task input parameter */
     0,           /* Priority of the task */
     NULL,        /* Task handle. */

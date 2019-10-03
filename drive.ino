@@ -35,7 +35,4 @@ void motorsStop() {
   timerAlarmEnable(rightStepTimer);
   leftMotorWriteSpeed = 0;
   rightMotorWriteSpeed = 0;
-  targetPitch = 0;
-  motorAccel = 0;
-  motorSpeed = 0;
 }

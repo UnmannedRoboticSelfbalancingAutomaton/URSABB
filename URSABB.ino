@@ -63,9 +63,15 @@ void loop() {  // on core 1. the balancing control loop will be here, with the g
   if (millis() - lastMessageTimeMillis > WiFiLossDisableIntervalMillis) {
     controlMode = 0;
   }
+
+  Serial.println(kP_angle);
+
   if (controlMode == M_DISABLED) { // disabled
     digitalWrite(LED_BUILTIN, HIGH);
     motorsStop();
+    targetPitch = 0;
+    motorAccel = 0;
+    motorSpeed = 0;
     digitalWrite(ENS_PIN, HIGH);  // disables stepper motors
   } else {
     digitalWrite(LED_BUILTIN, (millis() % 500 < 250));
@@ -90,6 +96,9 @@ void loop() {  // on core 1. the balancing control loop will be here, with the g
         break;
       case M_PARK:
         motorsStop();
+        targetPitch = 0;
+        motorAccel = 0;
+        motorSpeed = 0;
         break;
       case M_MAGHEAD_SEGWAY:
         break;
