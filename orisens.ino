@@ -1,14 +1,56 @@
 #include "ursabb.h"
 
-void setupBNO055() {
-
-}
-void readBNO055() {
-
-}
-void zeroBNO055() {
-
-}
+//void setupBNO055() {
+//  Wire.begin();
+//  Wire.setClock(400000L);  // send data at a faster clock speed
+//  Wire.beginTransmission(0x28);//address, operation mode, NDOF
+//  Wire.write(0x3D);
+//  Wire.write(0x0C);
+//  Wire.endTransmission(true);
+//}
+//void readBNO055() {
+//  uint8_t buffer[8];
+//  memset (buffer, 0, 8);
+//  int16_t x, y, z, w;
+//  Wire.beginTransmission(0x28);
+//  Wire.write(0x20);
+//  Wire.endTransmission();
+//  Wire.requestFrom(0x1A, 6);
+//  for (uint8_t i = 0; i < 6; i++) {
+//    buffer[i] = Wire.read();
+//  }
+//  heading = (((uint16_t)buffer[1]) << 8) | ((uint16_t)buffer[0]);
+//  x = (((uint16_t)buffer[3]) << 8) | ((uint16_t)buffer[2]);
+//  y = (((uint16_t)buffer[5]) << 8) | ((uint16_t)buffer[4]);
+//  z = (((uint16_t)buffer[7]) << 8) | ((uint16_t)buffer[6]);
+//  const float scale = (1.0 / (1 << 14));
+//  fscmFOriQuatW = w * scale;
+//  fscmFOriQuatX = x * scale;
+//  fscmFOriQuatY = y * scale;
+//  fscmFOriQuatZ = z * scale;
+//  Wire.beginTransmission(0x28);
+//  Wire.write(0x35);//BNO055_CALIB_STAT_ADDR
+//  Wire.endTransmission();
+//  Wire.requestFrom(0x28, 1);
+//  uint8_t calData = Wire.read();
+//  fscmFOriSystemCal = (calData >> 6) & 0x03;
+//  fscmFOriGyroCal = (calData >> 4) & 0x03;
+//  fscmFOriAccelCal = (calData >> 2) & 0x03;
+//  fscmFOriMagCal = calData & 0x03;
+//  fscmdQuaternionToEulerSet(fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFOriQuatW);
+//}
+//void toEuler() {
+//  fscmFHeading = 90 - degrees(atan2(2.0 * (qx * qy + qz * qw), (qx * qx - qy * qy - qz * qz + qw * qw)));
+//  fscmFHeading += MAGNETIC_VARIATION;
+//  if (fscmFHeading < 0) {
+//    fscmFHeading += 360;
+//  }
+//  fscmFPitch = -degrees(asin(-2.0 * (qx * qz - qy * qw) / (qx * qx + qy * qy + qz * qz + qw * qw)));
+//  fscmFRoll = degrees(atan2(2.0 * (qy * qz + qx * qw), (-qx * qx - qy * qy + qz * qz + qw * qw)));
+//}
+//void zeroBNO055() {
+//
+//}
 
 
 // start I2C communication and send commands to set up the MPU6050.

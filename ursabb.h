@@ -6,6 +6,7 @@
 #include <WiFiUdp.h>
 #include <WiFiAP.h>
 #include <EEPROM.h>
+#include <Servo.h>
 
 #define ROBOT_ID 255  // unique robot ID, sent to DS, and used to name wifi network
 #define MODEL_NO 255  // unique configuration of robot which can be used to identify additional features
@@ -71,6 +72,7 @@ int32_t rotationOffsetX, rotationOffsetY, rotationOffsetZ = 0;  // "offset" valu
 uint32_t lastCalcedMPU6050 = 0;  // micros() value of last orientation read. used to integrate gyro data to get rotation
 double rotationDPS_X, rotationDPS_Y, rotationDPS_Z = 0.000;  // rotation in Degrees Per Second around the X,Y, and Z axes, with x left right, y forwards and backwards and z up and down
 double pitch = 0.000;  // output (in degrees) from the MPU6050 reading code. negative=forwards, positive=back Pitch matters for self balancing.
+double heading = 0.00;  // mag heading from north
 
 hw_timer_t *leftStepTimer = NULL;
 hw_timer_t *rightStepTimer = NULL;
