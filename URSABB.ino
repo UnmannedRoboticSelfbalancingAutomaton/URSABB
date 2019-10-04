@@ -28,15 +28,16 @@ void setup() {
   PIDS.SetOutputLimits(-MAX_TIP, MAX_TIP);
 
   recallSettings();
-
+  setupWifi();
   setupMPU6050();  // this function starts the connection to the MPU6050 gyro/accelerometer board using the I2C Wire library, and tells the MPU6050 some settings to use
   zeroMPU6050();  // this function averages some gyro readings so later the readings can be calibrated to zero. This function blocks until the robot is held stil, so the robot needs to be set flat on the ground on startup
 
-  setupWifi();
-
   setupStepperTimers();
 
+  myServo.attach(4);
+
   digitalWrite(LED_BUILTIN, LOW);
+
 }
 
 void loop() {  // on core 1. the balancing control loop will be here, with the goal of keeping this loop as fast as possible
@@ -65,6 +66,7 @@ void loop() {  // on core 1. the balancing control loop will be here, with the g
   }
 
   Serial.println(kP_angle);
+  myServo.write(map(kP_angle * 1000, 0, 400, 0, 180));
 
   if (controlMode == M_DISABLED) { // disabled
     digitalWrite(LED_BUILTIN, HIGH);

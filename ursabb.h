@@ -6,7 +6,7 @@
 #include <WiFiUdp.h>
 #include <WiFiAP.h>
 #include <EEPROM.h>
-#include <Servo.h>
+#include <ESP32Servo.h>
 
 #define ROBOT_ID 255  // unique robot ID, sent to DS, and used to name wifi network
 #define MODEL_NO 255  // unique configuration of robot which can be used to identify additional features
@@ -96,5 +96,7 @@ WiFiUDP Udp;
 
 PID PIDA(&pitch, &motorAccel, &targetPitch, kP_angle, kI_angle, kD_angle, DIRECT);  // setup the Angle PID loop  PID(&Input, &Output, &Setpoint, Kp, Ki, Kd, Direction)
 PID PIDS(&motorSpeed, &targetPitch, &speedVal, kP_speed, kI_angle, kD_angle, DIRECT);  // setup the Speed PID loop
+
+Servo myServo;
 
 #endif
