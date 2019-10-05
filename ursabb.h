@@ -8,6 +8,7 @@
 #include <EEPROM.h>
 #include <ESP32Servo.h>
 
+
 #define ROBOT_ID 255  // unique robot ID, sent to DS, and used to name wifi network
 #define MODEL_NO 255  // unique configuration of robot which can be used to identify additional features
 #define WiFiLossDisableIntervalMillis 500  // if no data packet has been recieved for this number of milliseconds, the robot stops moving
@@ -32,6 +33,8 @@ float pitchOffset = -0.000;  // subtracted from the output in readMPU6050 so tha
 #define ENS_PIN GPIO_NUM_23  // pin wired to both motor driver chips' ENable pins, to turn on and off motors
 #define LED_BUILTIN GPIO_NUM_2
 #define VOLTAGE_PIN GPIO_NUM_36  // ADC1 CH0
+#define LEFT_SERVO_PIN GPIO_NUM_16
+#define RIGHT_SERVO_PIN GPIO_NUM_17
 
 // for checking on startup if still before calibrating
 #define movementThreshold 20
@@ -97,6 +100,7 @@ WiFiUDP Udp;
 PID PIDA(&pitch, &motorAccel, &targetPitch, kP_angle, kI_angle, kD_angle, DIRECT);  // setup the Angle PID loop  PID(&Input, &Output, &Setpoint, Kp, Ki, Kd, Direction)
 PID PIDS(&motorSpeed, &targetPitch, &speedVal, kP_speed, kI_angle, kD_angle, DIRECT);  // setup the Speed PID loop
 
-Servo myServo;
+Servo leftServo;
+Servo rightServo;
 
 #endif

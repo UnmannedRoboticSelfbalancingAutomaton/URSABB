@@ -1,4 +1,6 @@
-void runMotors(int leftMotorWriteSpeed, int rightMotorWriteSpeed) {
+#include "ursabb.h"
+
+void runMotors() {
   leftMotorWriteSpeed = constrain(leftMotorWriteSpeed, -MAX_SPEED, MAX_SPEED); // combine turnSpeedVal and the motor speed required for forwards/backwards movement so the robot can move and turn
   rightMotorWriteSpeed = constrain(rightMotorWriteSpeed, -MAX_SPEED, MAX_SPEED); // positive turn=turn to the right -> right wheel needs to slow down -> subtract turnSpeedVal for right motor
 
@@ -27,8 +29,6 @@ void runMotors(int leftMotorWriteSpeed, int rightMotorWriteSpeed) {
   timerAlarmEnable(rightStepTimer);
 }
 void motorsStop() {
-  PIDA.SetMode(MANUAL);
-  PIDS.SetMode(MANUAL);
   timerAlarmWrite(leftStepTimer, 1e17, true);  // 1Mhz / # =  rate
   timerAlarmWrite(rightStepTimer, 1e17, true);  // 1Mhz / # =  rate
   timerAlarmEnable(leftStepTimer);
