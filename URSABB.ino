@@ -34,7 +34,8 @@ void setup() {
 
   setupStepperTimers();
 
-  myServo.attach(4);
+  leftServo.attach(LEFT_SERVO_PIN);
+  rightServo.attach(RIGHT_SERVO_PIN);
 
   digitalWrite(LED_BUILTIN, LOW);
 
@@ -65,21 +66,24 @@ void loop() {  // on core 1. the balancing control loop will be here, with the g
     controlMode = 0;
   }
 
-  Serial.println(kP_angle);
-  myServo.write(map(kP_angle * 1000, 0, 400, 0, 180));
-
   if (controlMode == M_DISABLED) { // disabled
     digitalWrite(LED_BUILTIN, HIGH);
     motorsStop();
     targetPitch = 0;
     motorAccel = 0;
     motorSpeed = 0;
+    PIDA.SetMode(MANUAL);
+    PIDS.SetMode(MANUAL);
+    leftServo.detach();
+    rightServo.detach();
+    leftMotorWriteSpeed = 0;
+    rightMotorWriteSpeed = 0;
     digitalWrite(ENS_PIN, HIGH);  // disables stepper motors
   } else {
-    digitalWrite(LED_BUILTIN, (millis() % 500 < 250));
+    digitalWrite(LED_BUILTIN, (millis() % 500 < 150));
     switch (controlMode) {
       case M_SEGWAY:
-        if (lastControlMode != 2) { // the robot wasn't enabled, but now it is, so this must be the first loop since it was enabled. re set up anything you might want to
+        if (lastControlMode != M_SEGWAY) { // restart segway code
           digitalWrite(ENS_PIN, LOW);  // enables stepper motors
           PIDA.SetMode(AUTOMATIC);  // turn on the PID
           PIDS.SetMode(AUTOMATIC);  // turn on the PID
@@ -93,7 +97,8 @@ void loop() {  // on core 1. the balancing control loop will be here, with the g
         if (PIDS.Compute()) {
           motorSpeed += constrain(motorAccel, -MAX_ACCEL, MAX_ACCEL);
           motorSpeed = constrain(motorSpeed, -MAX_SPEED, MAX_SPEED);
-          runMotors(motorSpeed + turnSpeedVal, motorSpeed - turnSpeedVal);
+          leftMotorWriteSpeed = motorSpeed + turnSpeedVal;
+          rightMotorWriteSpeed = motorSpeed - turnSpeedVal;
         }
         break;
       case M_PARK:
@@ -110,6 +115,14 @@ void loop() {  // on core 1. the balancing control loop will be here, with the g
       case M_OUTRIGGER:
 
         break;
+    }
+    if ((lastControlMode == M_SEGWAY || lastControlMode == M_MAGHEAD_SEGWAY) && (controlMode != M_SEGWAY && controlMode != M_MAGHEAD_SEGWAY)) { // if switched away from a self balancing mode
+      PIDA.SetMode(MANUAL);
+      PIDS.SetMode(MANUAL);
+    }
+    if (lastControlMode == M_DISABLED && controlMode != M_DISABLED) {
+      leftServo.attach(LEFT_SERVO_PIN);
+      rightServo.attach(RIGHT_SERVO_PIN);
     }
   }
   lastControlMode = controlMode;
