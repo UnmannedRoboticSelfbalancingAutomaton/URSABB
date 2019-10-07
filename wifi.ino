@@ -29,7 +29,7 @@ void WiFiTaskFunction(void * pvParameters) {
 
 void setupWifi() {
   WiFi.enableAP(true);
-  WiFi.softAP(robotSSID, robotPass, 4, 0, 1);  // start wifi network, on channel 4, not hiding, and only allowing one client
+  WiFi.softAP(robotSSID, robotPass, 11, 0, 1);  // start wifi network, on channel 11, not hiding, and only allowing one client
   WiFi.softAPConfig(IPAddress(10, 25, 21, 255), IPAddress(10, 25, 21, 255), IPAddress(255, 255, 255, 0));
   delay(100);
   Udp.begin(2521);
