@@ -1,5 +1,4 @@
 #include "ursabb.h"
-
 void recallSettings() {
   byte counter = 0;
   kP_angle = EEPROMreadFloat(counter);
