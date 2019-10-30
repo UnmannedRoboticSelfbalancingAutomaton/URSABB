@@ -21,7 +21,7 @@ float TIPPED_TIP = 30; // if the robot is sitting at a pitch over this angle, th
 float DRIVE_SPEED_SCALER = .85;  // what proportion of MAX_SPEED the robot's target driving speed can be-some extra speed must be kept in reserve to remain balanced
 float TURN_SPEED_SCALER = .05;  // what proportion of MAX_SPEED can be given differently to each wheel in order to turn-controls maximum turn rate
 float PITCH_OFFSET_CHANGE = .999994;  // larger = pitchOffset changes slower
-float pitchOffset = -0.000;  // subtracted from the output in readMPU6050 so that zero pitch can correspond to balenced. Because the MPU6050 may not be mounted in the robot perfectly or because the robot's weight might not be perfectly centered, zero may not otherwise respond to perfectly balanced.
+float pitchOffset = -0.000;  // subtracted from the output in readMPU so that zero pitch can correspond to balenced. Because the MPU may not be mounted in the robot perfectly or because the robot's weight might not be perfectly centered, zero may not otherwise respond to perfectly balanced.
 
 // The following lines define STEP pins and DIR pins. STEP pins are used to
 // trigger a step (when rides from LOW to HIGH) whereas DIR pins are used to
@@ -71,10 +71,10 @@ double kP_angle, kI_angle, kD_angle = 0.0000;  // PID gains for the Angle contro
 double kP_speed, kI_speed, kD_speed = 0.0000;  // PID gains for the Speed control loop
 
 int16_t accelerationX, accelerationY, accelerationZ, rotationX, rotationY, rotationZ = 0;
-int32_t rotationOffsetX, rotationOffsetY, rotationOffsetZ = 0;  // "offset" values used to zero the MPU6050 gyro on startup
-uint32_t lastCalcedMPU6050 = 0;  // micros() value of last orientation read. used to integrate gyro data to get rotation
+int32_t rotationOffsetX, rotationOffsetY, rotationOffsetZ = 0;  // "offset" values used to zero the MPU gyro on startup
+uint32_t lastCalcedMPU = 0;  // micros() value of last orientation read. used to integrate gyro data to get rotation
 double rotationDPS_X, rotationDPS_Y, rotationDPS_Z = 0.000;  // rotation in Degrees Per Second around the X,Y, and Z axes, with x left right, y forwards and backwards and z up and down
-double pitch = 0.000;  // output (in degrees) from the MPU6050 reading code. negative=forwards, positive=back Pitch matters for self balancing.
+double pitch = 0.000;  // output (in degrees) from the MPU reading code. negative=forwards, positive=back Pitch matters for self balancing.
 double heading = 0.00;  // mag heading from north
 
 hw_timer_t *leftStepTimer = NULL;

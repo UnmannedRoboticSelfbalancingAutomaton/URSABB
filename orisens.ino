@@ -1,140 +1,44 @@
 #include "ursabb.h"
 
-//void setupBNO055() {
-//  Wire.begin();
-//  Wire.setClock(400000L);  // send data at a faster clock speed
-//  Wire.beginTransmission(0x28);//address, operation mode, NDOF
-//  Wire.write(0x3D);
-//  Wire.write(0x0C);
-//  Wire.endTransmission(true);
-//}
-//void readBNO055() {
-//  uint8_t buffer[8];
-//  memset (buffer, 0, 8);
-//  int16_t x, y, z, w;
-//  Wire.beginTransmission(0x28);
-//  Wire.write(0x20);
-//  Wire.endTransmission();
-//  Wire.requestFrom(0x1A, 6);
-//  for (uint8_t i = 0; i < 6; i++) {
-//    buffer[i] = Wire.read();
-//  }
-//  heading = (((uint16_t)buffer[1]) << 8) | ((uint16_t)buffer[0]);
-//  x = (((uint16_t)buffer[3]) << 8) | ((uint16_t)buffer[2]);
-//  y = (((uint16_t)buffer[5]) << 8) | ((uint16_t)buffer[4]);
-//  z = (((uint16_t)buffer[7]) << 8) | ((uint16_t)buffer[6]);
-//  const float scale = (1.0 / (1 << 14));
-//  fscmFOriQuatW = w * scale;
-//  fscmFOriQuatX = x * scale;
-//  fscmFOriQuatY = y * scale;
-//  fscmFOriQuatZ = z * scale;
-//  Wire.beginTransmission(0x28);
-//  Wire.write(0x35);//BNO055_CALIB_STAT_ADDR
-//  Wire.endTransmission();
-//  Wire.requestFrom(0x28, 1);
-//  uint8_t calData = Wire.read();
-//  fscmFOriSystemCal = (calData >> 6) & 0x03;
-//  fscmFOriGyroCal = (calData >> 4) & 0x03;
-//  fscmFOriAccelCal = (calData >> 2) & 0x03;
-//  fscmFOriMagCal = calData & 0x03;
-//  fscmdQuaternionToEulerSet(fscmFOriQuatX, fscmFOriQuatY, fscmFOriQuatZ, fscmFOriQuatW);
-//}
-//void toEuler() {
-//  fscmFHeading = 90 - degrees(atan2(2.0 * (qx * qy + qz * qw), (qx * qx - qy * qy - qz * qz + qw * qw)));
-//  fscmFHeading += MAGNETIC_VARIATION;
-//  if (fscmFHeading < 0) {
-//    fscmFHeading += 360;
-//  }
-//  fscmFPitch = -degrees(asin(-2.0 * (qx * qz - qy * qw) / (qx * qx + qy * qy + qz * qz + qw * qw)));
-//  fscmFRoll = degrees(atan2(2.0 * (qy * qz + qx * qw), (-qx * qx - qy * qy + qz * qz + qw * qw)));
-//}
-//void zeroBNO055() {
-//
-//}
 
-
-// start I2C communication and send commands to set up the MPU6050.
+// start I2C communication and send commands to set up the MPU
 // A command is set by starting a transmission, writing a byte (written here in hexadecimal) to signal what register should be changed,
 // and then sending a new register value
-void setupMPU6050() {
-  Wire.begin();  // setup mpu6050. reference for the mpu6050's registers https://www.invensense.com/wp-content/uploads/2015/02/MPU-6000-Register-Map1.pdf
-  Wire.setClock(400000L);  // send data at a faster clock speed
-  Wire.beginTransmission(0x68);
-  Wire.write(0x6B);
-  Wire.write(0);  // wakeup
-  Wire.endTransmission(true);
-  Wire.beginTransmission(0x68);
-  Wire.write(0x1B);
-  Wire.write(0x10);  // gyro range //18=2000//10=1000
-  Wire.endTransmission(true);
-  Wire.beginTransmission(0x68);
-  Wire.write(0x19);
-  Wire.write(0x02);  // clock divider
-  Wire.endTransmission(true);
-  Wire.beginTransmission(0x68);
-  Wire.write(0x1A);
-  Wire.write(0x00);  // buffering
-  Wire.endTransmission(true);  // end setup mpu6050
+void setupMPU9250() {
+
 }
 
-void readMPU6050() {
-  Wire.beginTransmission(0x68);
-  Wire.write(0x3B);  // location of first byte of data
-  Wire.endTransmission(false);
-  Wire.requestFrom(0x68, 14, true);  // ask for accel and gyro data bytes
-  accelerationX = Wire.read() << 8 | Wire.read();  // read two bytes and put them together into a sixteen bit integer value
-  accelerationY = Wire.read() << 8 | Wire.read();
-  accelerationZ = Wire.read() << 8 | Wire.read();
-  Wire.read(); Wire.read();  // throw away temperature, it's annoying they put it in the middle here
-  rotationX = Wire.read() << 8 | Wire.read();
-  rotationY = Wire.read() << 8 | Wire.read();
-  rotationZ = Wire.read() << 8 | Wire.read();
+void readMPU9250() {
+  getValuesMPU9250();
   rotationDPS_X = (rotationX - rotationOffsetX) * 1000.00 / 32766;  // zero gyro with offset values recorded on startup and convert to degrees per second
   rotationDPS_Y = (rotationY - rotationOffsetY) * 1000.00 / 32766;
   rotationDPS_Z = (rotationZ - rotationOffsetZ) * 1000.00 / 32766;
 
-  if (micros() < lastCalcedMPU6050) {  // try to handle micros' long overflow in a harmless way
-    lastCalcedMPU6050 = micros() - 10000;
+  if (micros() < lastCalcedMPU) {  // try to handle micros' long overflow in a harmless way
+    lastCalcedMPU = micros() - 10000;
   }
   // complementary filter combines gyro and accelerometer tilt data in a way that takes advantage of short term accuracy of the gyro and long term accuracy of the accelerometer
-  pitch = COMPLEMENTARY_FILTER_CONSTANT * ((pitch) + rotationDPS_X * (micros() - lastCalcedMPU6050) / 1000000.000)  // add rotation rate as measured by the gyro to current pitch - valid in short term
+  pitch = COMPLEMENTARY_FILTER_CONSTANT * ((pitch) + rotationDPS_X * (micros() - lastCalcedMPU) / 1000000.000)  // add rotation rate as measured by the gyro to current pitch - valid in short term
           + (1 - COMPLEMENTARY_FILTER_CONSTANT) * (degrees(atan2(accelerationY, accelerationZ)) - pitchOffset);   // in the long term drift towards the angle of gravity measured by the accelerometer
 
   if (controlMode == 2) { // only adjust pitchOffset when the robot is enabled
     pitchOffset = (pitch + pitchOffset) * (1 - PITCH_OFFSET_CHANGE) + pitchOffset * (PITCH_OFFSET_CHANGE);  // slowly move pitchOffset towards the current pitch value, the overall average pitch value should be close to the balance point
   }
-  lastCalcedMPU6050 = micros();  // record time of last calculation so we know next time how much time has passed (how much time to integrate rotation rate for)
+  lastCalcedMPU = micros();  // record time of last calculation so we know next time how much time has passed (how much time to integrate rotation rate for)
 }
 
-void zeroMPU6050() {  // find how much offset each gyro axis has to zero out drift. should be run on startup (when robot is still)
+void zeroMPU9250() {  // find how much offset each gyro axis has to zero out drift. should be run on startup (when robot is still)
   do {
-    Wire.beginTransmission(0x68);
-    Wire.write(0x3B);
-    Wire.endTransmission(false);
-    Wire.requestFrom(0x68, 14, true);
-    accelerationX = Wire.read() << 8 | Wire.read();  // same reading code as earlier
-    accelerationY = Wire.read() << 8 | Wire.read();
-    accelerationZ = Wire.read() << 8 | Wire.read();
-    Wire.read(); Wire.read();  // throw away temperature
-    int16_t lastrotationX = Wire.read() << 8 | Wire.read();
-    int16_t lastrotationY = Wire.read() << 8 | Wire.read();
-    int16_t lastrotationZ = Wire.read() << 8 | Wire.read();
+    getValuesMPU9250();
+    int16_t lastrotationX = rotationX;
+    int16_t lastrotationY = rotationY;
+    int16_t lastrotationZ = rotationZ;
     rotationOffsetX = 0;
     rotationOffsetY = 0;
     rotationOffsetZ = 0;
 
     for (int i = 0; i < movementMeasurements; i++) {
-      Wire.beginTransmission(0x68);
-      Wire.write(0x3B);
-      Wire.endTransmission(false);
-      Wire.requestFrom(0x68, 14, true);
-      accelerationX = Wire.read() << 8 | Wire.read();  // same reading code as earlier
-      accelerationY = Wire.read() << 8 | Wire.read();
-      accelerationZ = Wire.read() << 8 | Wire.read();
-      Wire.read(); Wire.read();  // throw away temperature
-      rotationX = Wire.read() << 8 | Wire.read();
-      rotationY = Wire.read() << 8 | Wire.read();
-      rotationZ = Wire.read() << 8 | Wire.read();
+      getValuesMPU9250();
       rotationOffsetX += abs(rotationX - lastrotationX);
       rotationOffsetY += abs(rotationY - lastrotationY);
       rotationOffsetZ += abs(rotationZ - lastrotationZ);
@@ -151,17 +55,7 @@ void zeroMPU6050() {  // find how much offset each gyro axis has to zero out dri
   rotationOffsetZ = 0;
   digitalWrite(LED_BUILTIN, LOW);
   for (int i = 0; i < 50; i++) {  // run the following code 50 times so we can get many measurements to average into an offset value
-    Wire.beginTransmission(0x68);
-    Wire.write(0x3B);
-    Wire.endTransmission(false);
-    Wire.requestFrom(0x68, 14, true);
-    accelerationX = Wire.read() << 8 | Wire.read();  // same reading code as earlier
-    accelerationY = Wire.read() << 8 | Wire.read();
-    accelerationZ = Wire.read() << 8 | Wire.read();
-    Wire.read(); Wire.read();  // throw away temperature
-    rotationX = Wire.read() << 8 | Wire.read();
-    rotationY = Wire.read() << 8 | Wire.read();
-    rotationZ = Wire.read() << 8 | Wire.read();
+    getValuesMPU9250();
     rotationOffsetX += rotationX;  // add all the reads together
     rotationOffsetY += rotationY;
     rotationOffsetZ += rotationZ;
@@ -171,4 +65,17 @@ void zeroMPU6050() {  // find how much offset each gyro axis has to zero out dri
   rotationOffsetX /= 50;  // devide by the number of reads that were taken to get an average value
   rotationOffsetY /= 50;
   rotationOffsetZ /= 50;
+}
+void getValuesMPU9250() {
+  //  Wire.beginTransmission(0x68);
+  //  Wire.write(0x3B);  // location of first byte of data
+  //  Wire.endTransmission(false);
+  //  Wire.requestFrom(0x68, 14, true);  // ask for accel and gyro data bytes
+  //  accelerationX = Wire.read() << 8 | Wire.read();  // read two bytes and put them together into a sixteen bit integer value
+  //  accelerationY = Wire.read() << 8 | Wire.read();
+  //  accelerationZ = Wire.read() << 8 | Wire.read();
+  //  Wire.read(); Wire.read();  // throw away temperature, it's annoying they put it in the middle here
+  //  rotationX = Wire.read() << 8 | Wire.read();
+  //  rotationY = Wire.read() << 8 | Wire.read();
+  //  rotationZ = Wire.read() << 8 | Wire.read();
 }

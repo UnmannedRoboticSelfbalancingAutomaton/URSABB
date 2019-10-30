@@ -29,8 +29,8 @@ void setup() {
 
   recallSettings();
   setupWifi();
-  setupMPU6050();  // this function starts the connection to the MPU6050 gyro/accelerometer board using the I2C Wire library, and tells the MPU6050 some settings to use
-  zeroMPU6050();  // this function averages some gyro readings so later the readings can be calibrated to zero. This function blocks until the robot is held stil, so the robot needs to be set flat on the ground on startup
+  setupMPU9250();  // this function starts the connection to the MPU gyro/accelerometer board using the I2C Wire library, and tells the MPU some settings to use
+  zeroMPU9250();  // this function averages some gyro readings so later the readings can be calibrated to zero. This function blocks until the robot is held stil, so the robot needs to be set flat on the ground on startup
 
   setupStepperTimers();
 
@@ -43,7 +43,7 @@ void setup() {
 
 void loop() {  // on core 1. the balancing control loop will be here, with the goal of keeping this loop as fast as possible
 
-  readMPU6050();
+  readMPU();
 
   voltage = map(analogRead(VOLTAGE_PIN) * 1000.00 / DACUnitsPerVolt, 0, 13000.0, 0, 255);
 
