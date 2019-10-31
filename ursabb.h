@@ -2,9 +2,7 @@
 #define ursabbh
 #include <PID_v1.h>
 #include <Wire.h>  // scl=22 sda=21
-#include <WiFi.h>
-#include <WiFiUdp.h>
-#include <WiFiAP.h>
+#include <BluetoothSerial.h>
 #include <EEPROM.h>
 #include <ESP32Servo.h>
 
@@ -83,7 +81,7 @@ hw_timer_t *rightStepTimer = NULL;
 byte numBytesToSend = 0;
 // Define the SSID and password for the robot's access point
 char robotSSID[12];  // defined in the setup method
-const char *robotPass = "sert2521";
+const char *robotPin = "2521";
 volatile byte recvdData[maxWifiRecvBufSize] = {0};  // array to hold data recieved from DS.
 volatile boolean receivedNewData = false;  // set true when data gotten, set false when parsed
 volatile byte dataToSend[maxWifiSendBufSize] = {0};  // array to hold data to send to DS.
@@ -95,7 +93,7 @@ byte auxSendArray[12] = {0};  // size of numAuxSend
 volatile uint32_t lastMessageTimeMillis = 0;
 byte saverecallState = 0;  // 0=don't send don't save  1=send  2=save
 
-WiFiUDP Udp;
+BluetoothSerial SerialBT;
 
 PID PIDA(&pitch, &motorAccel, &targetPitch, kP_angle, kI_angle, kD_angle, DIRECT);  // setup the Angle PID loop  PID(&Input, &Output, &Setpoint, Kp, Ki, Kd, Direction)
 PID PIDS(&motorSpeed, &targetPitch, &speedVal, kP_speed, kI_angle, kD_angle, DIRECT);  // setup the Speed PID loop

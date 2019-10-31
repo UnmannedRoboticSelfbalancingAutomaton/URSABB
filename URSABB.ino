@@ -17,7 +17,7 @@ void setup() {
   Serial.begin(115200);  // for debugging. Set the serial monitor to the same value or you will see nothing or gibberish.
 
   mutexReceive = xSemaphoreCreateMutex();
-  sprintf(robotSSID, "SERT_URSA_%02d", ROBOT_ID);  // create unique network SSID
+  sprintf(robotSSID, "URSABB_%02d", ROBOT_ID);  // create unique network SSID
   EEPROM.begin(64);  // size in bytes
 
   PIDA.SetMode(MANUAL);  // PID loop off
@@ -28,9 +28,9 @@ void setup() {
   PIDS.SetOutputLimits(-MAX_TIP, MAX_TIP);
 
   recallSettings();
-  setupWifi();
-  setupMPU9250();  // this function starts the connection to the MPU gyro/accelerometer board using the I2C Wire library, and tells the MPU some settings to use
-  zeroMPU9250();  // this function averages some gyro readings so later the readings can be calibrated to zero. This function blocks until the robot is held stil, so the robot needs to be set flat on the ground on startup
+  setupBluetooth();
+  setupMPU();  // this function starts the connection to the MPU gyro/accelerometer board using the I2C Wire library, and tells the MPU some settings to use
+  zeroMPU();  // this function averages some gyro readings so later the readings can be calibrated to zero. This function blocks until the robot is held stil, so the robot needs to be set flat on the ground on startup
 
   setupStepperTimers();
 

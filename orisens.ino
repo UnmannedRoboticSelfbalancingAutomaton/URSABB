@@ -4,11 +4,11 @@
 // start I2C communication and send commands to set up the MPU
 // A command is set by starting a transmission, writing a byte (written here in hexadecimal) to signal what register should be changed,
 // and then sending a new register value
-void setupMPU9250() {
+void setupMPU() {
 
 }
 
-void readMPU9250() {
+void readMPU() {
   getValuesMPU9250();
   rotationDPS_X = (rotationX - rotationOffsetX) * 1000.00 / 32766;  // zero gyro with offset values recorded on startup and convert to degrees per second
   rotationDPS_Y = (rotationY - rotationOffsetY) * 1000.00 / 32766;
@@ -27,7 +27,7 @@ void readMPU9250() {
   lastCalcedMPU = micros();  // record time of last calculation so we know next time how much time has passed (how much time to integrate rotation rate for)
 }
 
-void zeroMPU9250() {  // find how much offset each gyro axis has to zero out drift. should be run on startup (when robot is still)
+void zeroMPU() {  // find how much offset each gyro axis has to zero out drift. should be run on startup (when robot is still)
   do {
     getValuesMPU9250();
     int16_t lastrotationX = rotationX;
