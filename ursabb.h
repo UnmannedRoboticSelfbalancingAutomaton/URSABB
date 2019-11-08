@@ -38,8 +38,12 @@ float pitchOffset = -0.000;  // subtracted from the output in readMPU so that ze
 #define movementThreshold 20
 #define movementMeasurements 20
 
-#define maxWifiRecvBufSize 50  // max number of bytes to receive
-#define maxWifiSendBufSize 50  // max number of bytes to send
+// constants for what size to make arrays for data communication
+// note that bytes, ints, and floats are transmitted with twice the number of bytes that they are
+#define maxRecvBufSize 20  // max number of bytes to receive
+#define maxSendBufSize 20  // max number of bytes to send
+#define maxAuxRecvSize 10  //max number of aux bytes to receive
+#define maxAuxSendSize 10  //max number of aux bytes to send
 
 byte voltage = 0;  // 0v=0 13v=255
 
@@ -79,17 +83,17 @@ hw_timer_t *leftStepTimer = NULL;
 hw_timer_t *rightStepTimer = NULL;
 
 byte numBytesToSend = 0;
+byte recvByteCounter = 0;
 // Define the SSID and password for the robot's access point
 char robotSSID[12];  // defined in the setup method
 const char *robotPin = "2521";
-volatile byte recvdData[maxWifiRecvBufSize] = {0};  // array to hold data recieved from DS.
+volatile byte recvdData[maxRecvBufSize] = {0}; // array to hold data recieved from DS.
 volatile boolean receivedNewData = false;  // set true when data gotten, set false when parsed
-volatile byte dataToSend[maxWifiSendBufSize] = {0};  // array to hold data to send to DS.
-char packetBuffer[maxWifiRecvBufSize];
+volatile byte dataToSend[maxSendBufSize] = {0}; // array to hold data to send to DS.
 byte numAuxRecv = 0;  // how many bytes of control data for extra things
-byte auxRecvArray[12] = {0};  // size of numAuxRecv
+byte auxRecvArray[maxAuxRecvSize] = {0}; // size of numAuxRecv
 byte numSendAux = 0;  // how many bytes of sensor data to send
-byte auxSendArray[12] = {0};  // size of numAuxSend
+byte auxSendArray[maxAuxSendSize] = {0}; // size of numAuxSend
 volatile uint32_t lastMessageTimeMillis = 0;
 byte saverecallState = 0;  // 0=don't send don't save  1=send  2=save
 

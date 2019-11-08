@@ -4,39 +4,47 @@ void bluetoothTaskFunction(void * pvParameters) {
   while (true) {  // infinite loop
     // bluetooth recieve code:
 
-    //
-    //  while (SerialBT.available()) {
-    //    SerialBT.write(SerialBT.read());
-    //  }
-    //
-    //    int packetSize = Udp.parsePacket();
-    //    if (packetSize) {
-    //      if (xSemaphoreTake(mutexReceive, 1) == pdTRUE) {
-    //        receivedNewData = true;
-    //        lastMessageTimeMillis = millis();
-    //
-    //        Udp.read(packetBuffer, maxWifiRecvBufSize);
-    //        for (int i = 0; i < maxWifiRecvBufSize; i++) {
-    //          recvdData[i] = (byte)((int)(256 + packetBuffer[i]) % 256);
-    //        }
-    //
-    //        Udp.beginPacket();
-    //        for (byte i = 0; i < numBytesToSend; i++) {  // send response, maybe change to go less frequently
-    //          Udp.write(dataToSend[i]);
-    //        }
-    //
-    //        Udp.endPacket();
-    //
-    //        xSemaphoreGive(mutexReceive);
-    //      }
-    //    }
+    while (SerialBT.available()) {
+      if (charToByte(SerialBT.peek())) { //end of line
+        SerialBT.read();
+        endline();
+      } else {
+        byte hd = charToByte(SerialBT.read());
+        if (charToByte(SerialBT.peek())) { //end of line
+          /* this code shouldn't ever run. The first end of line check should catch the end of a message
+              and there should never be half of a split byte and then an endline caught by this if.
+              Still, if communication gets out of sync, it's better to get one bad read than never get an endline.
+              TODO: add errorchecking to communication code.
+          */
+          SerialBT.read();
+          endline();
+        } else {
+          recvdData[recvByteCounter] = (charToByte(SerialBT.read()) << 4) | hd;  // combine bytes, second byte more significant
+          recvByteCounter++;
+        }
+      }
+    }
     vTaskDelay(25 / portTICK_PERIOD_MS);
   }
 }
-
+void endline() {
+  recvByteCounter = 0;
+  if (xSemaphoreTake(mutexReceive, 1) == pdTRUE) {
+    receivedNewData = true;
+    lastMessageTimeMillis = millis();
+    for (byte i = 0; i < numBytesToSend; i++) {
+      SerialBT.write((dataToSend[i]) | B00001111);  // send less significant half
+      SerialBT.write(dataToSend[i] >> 4);  // send second more significant half
+    }
+    SerialBT.write(255);//send endline
+    xSemaphoreGive(mutexReceive);
+  }
+}
+byte charToByte(char i) {
+  return (byte)((int)(256 + i) % 256);
+}
 void setupBluetooth() {
   SerialBT.begin(robotSSID);
-  SerialBT.setPin(robotPin);
   xTaskCreatePinnedToCore(  // create task to run WiFi recieving
     bluetoothTaskFunction,   /* Function to implement the task */
     "bluetoothTask",  /* Name of the task */
@@ -48,19 +56,19 @@ void setupBluetooth() {
   );
 }
 
-boolean readBoolFromBuffer(byte &pos) {  // return boolean at pos position in recvdData
+boolean readBoolFromBuffer(byte &pos) { // return boolean at pos position in recvdData
   byte msg = recvdData[pos];
   pos++;  // increment the counter for the next value
   return (msg == 1);
 }
 
-byte readByteFromBuffer(byte &pos) {  // return byte at pos position in recvdData
+byte readByteFromBuffer(byte &pos) { // return byte at pos position in recvdData
   byte msg = recvdData[pos];
   pos++;  // increment the counter for the next value
   return msg;
 }
 
-int readIntFromBuffer(byte &pos) {  // return int from four bytes starting at pos position in recvdData
+int readIntFromBuffer(byte &pos) { // return int from four bytes starting at pos position in recvdData
   union {  // this lets us translate between two variable types (equal size, but one's four bytes in an array, and one's a four byte int)  Reference for unions: https:// www.mcgurrin.info/robots/127/
     byte b[4];
     int v;
@@ -74,7 +82,7 @@ int readIntFromBuffer(byte &pos) {  // return int from four bytes starting at po
   return d.v;  // return the int form of union d
 }
 
-float readFloatFromBuffer(byte &pos) {  // return float from 4 bytes starting at pos position in recvdData
+float readFloatFromBuffer(byte &pos) { // return float from 4 bytes starting at pos position in recvdData
   union {  // this lets us translate between two variable types (equal size, but one's 4 bytes in an array, and one's a 4 byte float) Reference for unions: https:// www.mcgurrin.info/robots/127/
     byte b[4];
     float v;
@@ -88,17 +96,17 @@ float readFloatFromBuffer(byte &pos) {  // return float from 4 bytes starting at
   return d.v;
 }
 
-void addBoolToBuffer(boolean msg, byte &pos) {  // add a boolean to the tosendData array
+void addBoolToBuffer(boolean msg, byte &pos) { // add a boolean to the tosendData array
   dataToSend[pos] = msg;
   pos++;
 }
 
-void addByteToBuffer(byte msg, byte &pos) {  // add a byte to the tosendData array
+void addByteToBuffer(byte msg, byte &pos) { // add a byte to the tosendData array
   dataToSend[pos] = msg;
   pos++;
 }
 
-void addIntToBuffer(int msg, byte &pos) {  // add an int to the tosendData array (four bytes)
+void addIntToBuffer(int msg, byte &pos) { // add an int to the tosendData array (four bytes)
   union {
     byte b[4];
     int v;
@@ -112,7 +120,7 @@ void addIntToBuffer(int msg, byte &pos) {  // add an int to the tosendData array
   }
 }
 
-void addFloatToBuffer(float msg, byte &pos) {  // add a float to the tosendData array (four bytes)
+void addFloatToBuffer(float msg, byte &pos) { // add a float to the tosendData array (four bytes)
   union {  // this lets us translate between two variables (equal size, but one's 4 bytes in an array, and one's a 4 byte float Reference for unions: https:// www.mcgurrin.info/robots/127/
     byte b[4];
     float v;
