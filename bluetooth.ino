@@ -5,36 +5,44 @@ void bluetoothTaskFunction(void * pvParameters) {
     // bluetooth recieve code:
 
     while (SerialBT.available()) {
-      if (charToByte(SerialBT.peek())) { //end of line
-        SerialBT.read();
-        endline();
-      } else {
-        byte hd = charToByte(SerialBT.read());
-        if (charToByte(SerialBT.peek())) { //end of line
-          /* this code shouldn't ever run. The first end of line check should catch the end of a message
-              and there should never be half of a split byte and then an endline caught by this if.
-              Still, if communication gets out of sync, it's better to get one bad read than never get an endline.
-              TODO: add errorchecking to communication code.
-          */
-          SerialBT.read();
-          endline();
-        } else {
-          recvdData[recvByteCounter] = (charToByte(SerialBT.read()) << 4) | hd;  // combine bytes, second byte more significant
-          recvByteCounter++;
-        }
-      }
+          if (charToByte(SerialBT.peek()) == 255) { //end of line
+            recvByteCounter = 0;
+            SerialBT.read();
+            endline();//and make response
+          } else {
+            byte hd = charToByte(SerialBT.read());
+            if (charToByte(SerialBT.peek()) == 255 && hd <= 127) { //suprise end of line
+              /* this code shouldn't ever run. The first end of line check should catch the end of a message
+                  and there should never be half of a split byte and then an endline caught by this if.
+                  Still, if communication gets out of sync, it's better to drop one packet and reset than never
+                  catch the endline again.
+                  TODO: add errorchecking to communication code.
+              */
+              SerialBT.read();
+              recvByteCounter = 0;
+            } else {
+              if (hd == 128) {
+                recvdData[recvByteCounter] = 0;
+                recvByteCounter++;
+              } else if (hd == 129) {
+                recvdData[recvByteCounter] = 1;
+                recvByteCounter++;
+              } else {
+                recvdData[recvByteCounter] = (charToByte(SerialBT.read()) << 4) | hd;  // combine bytes, second byte more significant
+                recvByteCounter++;
+              }
+            }
+     }
     }
     vTaskDelay(25 / portTICK_PERIOD_MS);
   }
 }
 void endline() {
-  recvByteCounter = 0;
   if (xSemaphoreTake(mutexReceive, 1) == pdTRUE) {
     receivedNewData = true;
     lastMessageTimeMillis = millis();
     for (byte i = 0; i < numBytesToSend; i++) {
-      SerialBT.write((dataToSend[i]) | B00001111);  // send less significant half
-      SerialBT.write(dataToSend[i] >> 4);  // send second more significant half
+      SerialBT.write((dataToSend[i]));//write pre split bytes
     }
     SerialBT.write(255);//send endline
     xSemaphoreGive(mutexReceive);
@@ -59,6 +67,7 @@ void setupBluetooth() {
 boolean readBoolFromBuffer(byte &pos) { // return boolean at pos position in recvdData
   byte msg = recvdData[pos];
   pos++;  // increment the counter for the next value
+  Serial.println(msg);
   return (msg == 1);
 }
 
@@ -97,12 +106,18 @@ float readFloatFromBuffer(byte &pos) { // return float from 4 bytes starting at 
 }
 
 void addBoolToBuffer(boolean msg, byte &pos) { // add a boolean to the tosendData array
-  dataToSend[pos] = msg;
+  if (msg == true) {
+    dataToSend[pos] = 129;
+  } else {
+    dataToSend[pos] = 128;
+  }
   pos++;
 }
 
 void addByteToBuffer(byte msg, byte &pos) { // add a byte to the tosendData array
-  dataToSend[pos] = msg;
+  dataToSend[pos] = ((msg) | B00001111);  // add less significant half
+  pos++;
+  dataToSend[pos] = (msg >> 4); // add second more significant half
   pos++;
 }
 
@@ -115,7 +130,9 @@ void addIntToBuffer(int msg, byte &pos) { // add an int to the tosendData array 
   d.v = msg;  // put the value into the union as an int
 
   for (int i = 0; i < 4; i++) {
-    dataToSend[pos] = d.b[i];
+    dataToSend[pos] = ((d.b[i]) | B00001111);  // add less significant half
+    pos++;
+    dataToSend[pos] = (d.b[i] >> 4); // add second more significant half
     pos++;
   }
 }
@@ -129,7 +146,9 @@ void addFloatToBuffer(float msg, byte &pos) { // add a float to the tosendData a
   d.v = msg;
 
   for (int i = 0; i < 4; i++) {
-    dataToSend[pos] = d.b[i];
+    dataToSend[pos] = ((d.b[i]) | B00001111);  // add less significant half
+    pos++;
+    dataToSend[pos] = (d.b[i] >> 4); // add second more significant half
     pos++;
   }
 }
