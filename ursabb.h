@@ -4,7 +4,7 @@
 #include <Wire.h>  // scl=22 sda=21
 #include <BluetoothSerial.h>
 #include <EEPROM.h>
-#include <ESP32Servo.h>
+//#include <ESP32Servo.h>
 
 
 #define ROBOT_ID 255  // unique robot ID, sent to DS, and used to name wifi network
@@ -102,7 +102,7 @@ BluetoothSerial SerialBT;
 PID PIDA(&pitch, &motorAccel, &targetPitch, kP_angle, kI_angle, kD_angle, DIRECT);  // setup the Angle PID loop  PID(&Input, &Output, &Setpoint, Kp, Ki, Kd, Direction)
 PID PIDS(&motorSpeed, &targetPitch, &speedVal, kP_speed, kI_angle, kD_angle, DIRECT);  // setup the Speed PID loop
 
-Servo leftServo;
-Servo rightServo;
+//Servo leftServo;
+//Servo rightServo;
 
 #endif

@@ -34,8 +34,8 @@ void setup() {
 
   setupStepperTimers();
 
-  leftServo.attach(LEFT_SERVO_PIN);
-  rightServo.attach(RIGHT_SERVO_PIN);
+//  leftServo.attach(LEFT_SERVO_PIN);
+//  rightServo.attach(RIGHT_SERVO_PIN);
 
   digitalWrite(LED_BUILTIN, LOW);
 
@@ -47,13 +47,13 @@ void loop() {  // on core 1. the balancing control loop will be here, with the g
 
   voltage = map(analogRead(VOLTAGE_PIN) * 1000.00 / DACUnitsPerVolt, 0, 13000.0, 0, 255);
 
-  if (receivedNewData) {
-    if (xSemaphoreTake(mutexReceive, 1) == pdTRUE) {
+  if (xSemaphoreTake(mutexReceive, 1) == pdTRUE) {
+    if (receivedNewData) {
       parseDataReceived();
       numBytesToSend = createDataToSend();
       receivedNewData = false;
-      xSemaphoreGive(mutexReceive);
     }
+    xSemaphoreGive(mutexReceive);
   }
 
   if (abs(pitch) > TIPPED_TIP) {
@@ -74,8 +74,8 @@ void loop() {  // on core 1. the balancing control loop will be here, with the g
     motorSpeed = 0;
     PIDA.SetMode(MANUAL);
     PIDS.SetMode(MANUAL);
-    leftServo.detach();
-    rightServo.detach();
+//    leftServo.detach();
+//    rightServo.detach();
     leftMotorWriteSpeed = 0;
     rightMotorWriteSpeed = 0;
     digitalWrite(ENS_PIN, HIGH);  // disables stepper motors
@@ -121,8 +121,8 @@ void loop() {  // on core 1. the balancing control loop will be here, with the g
       PIDS.SetMode(MANUAL);
     }
     if (lastControlMode == M_DISABLED && controlMode != M_DISABLED) {
-      leftServo.attach(LEFT_SERVO_PIN);
-      rightServo.attach(RIGHT_SERVO_PIN);
+//      leftServo.attach(LEFT_SERVO_PIN);
+//      rightServo.attach(RIGHT_SERVO_PIN);
     }
   }
   lastControlMode = controlMode;
